@@ -40,9 +40,20 @@ class Expression:
         self.tree = None
         self.current_value = None
         self.number_of_parties = 0
-
-    def __add__(self, other):
-        new_tree = Node('+')
+        
+        self.priority = 0
+        self.command_list = []
+        
+    def create_command(self, symbol, new_expr):
+        right_expr, left_expr = new_expr.tree.right, new_expr.tree.left
+        expr_id, priority = new_expr.id, new_expr.priority
+        command = [priority, (right_expr.id, right_expr.priority), (left_expr.id, left_expr.priority), expr_id]
+        new_expr.command_list += [command]
+        new_expr.command_list += right_expr.command_list
+        new_expr.command_list += left_expr.command_list
+        
+    def add_to_tree(self, other, symbol):
+        new_tree = Node(symbol)
         new_tree.left = self
         new_tree.right = other
         
@@ -50,33 +61,24 @@ class Expression:
         new_expr.tree = new_tree
         #new_expr.value = self.value + other.value
         new_expr.number_of_parties = self.number_of_parties + other.number_of_parties
+        new_expr.priority = max(new_tree.left.priority, new_tree.right.priority) + 1
+        
+        self.create_command(symbol, new_expr)
         return new_expr
+
+    def __add__(self, other):
+        symbol = '+'
+        return self.add_to_tree(other, symbol)
         #raise NotImplementedError("You need to implement this method.")
 
 
     def __sub__(self, other):
-        #raise NotImplementedError("You need to implement this method.")
-        new_tree = Node('-')
-        new_tree.left = self
-        new_tree.right = other
-        
-        new_expr = Expression()
-        new_expr.tree = new_tree
-        #new_expr.value = self.value - other.value
-        new_expr.number_of_parties = self.number_of_parties + other.number_of_parties
-        return new_expr
+        symbol = '-'
+        return self.add_to_tree(other, symbol)
     
     def __mul__(self, other):
-        #raise NotImplementedError("You need to implement this method.")
-        new_tree = Node('*')
-        new_tree.left = self
-        new_tree.right = other
-        
-        new_expr = Expression()
-        new_expr.tree = new_tree
-        #new_expr.value = self.value * other.value
-        new_expr.number_of_parties = self.number_of_parties + other.number_of_parties
-        return new_expr
+        symbol = '*'
+        return self.add_to_tree(other, symbol)
     
     def __repr__(self):
         if self is None:
@@ -147,5 +149,23 @@ class Node:
         self.data = data
 
 
+class Constant:
+    def __init__(self, value: Optional[int] = int, name: Optional[int] = str):
+        self.value = value
+        self.name = name
+        
+    def get_value():
+        return self.value
+    
+    def get_name():
+        return self.name
+    
+    
+    
+    
+    
+    
+    
+    
 
 # Feel free to add as many classes as you like.
