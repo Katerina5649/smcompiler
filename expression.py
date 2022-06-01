@@ -149,23 +149,4 @@ class Node:
         self.data = data
 
 
-class Constant:
-    def __init__(self, value: Optional[int] = int, name: Optional[int] = str):
-        self.value = value
-        self.name = name
-        
-    def get_value():
-        return self.value
-    
-    def get_name():
-        return self.name
-    
-    
-    
-    
-    
-    
-    
-    
-
 # Feel free to add as many classes as you like.
