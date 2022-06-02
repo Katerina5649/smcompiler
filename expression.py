@@ -50,7 +50,7 @@ class Expression:
         self.priority = 0
         self.command_list = []
         self.constants = {}
-        self.secrets_idx = {}
+        self.secrets_idx = None
         
     def create_command(self, symbol, new_expr):
         right_expr, left_expr = new_expr.tree.right, new_expr.tree.left
@@ -69,7 +69,14 @@ class Expression:
         
         new_expr = Expression()
         new_expr.constants = merge_two_dicts(self.constants, other.constants)
-        new_expr.secrets_idx = self.secrets_idx.union(other.secrets_idx)
+        if self.secrets_idx is None and other.secrets_idx is None:
+            new_expr.secrets_idx = None
+        elif self.secrets_idx is None:
+            new_expr.secrets_idx = other.secrets_idx
+        elif other.secrets_idx is None:
+            new_expr.secrets_idx = self.secrets_idx
+        else:
+            new_expr.secrets_idx = self.secrets_idx.union(other.secrets_idx) 
         new_expr.tree = new_tree
         #new_expr.value = self.value + other.value
         new_expr.number_of_parties = self.number_of_parties + other.number_of_parties

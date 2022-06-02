@@ -22,7 +22,6 @@ class Share:
         #raise NotImplementedError("You need to implement this method.")
 
     def __add__(self, other):
-        print(f'Share type is {type(other)}')
         if self.idx == -1 and other.idx == -1:
             return Share(self.value + other.value, -1)
         if self.idx == -1:
@@ -36,10 +35,13 @@ class Share:
 
     def __sub__(self, other):
         
-        if type(other) == 'Share':
-            return Share(self.value - other.value, self.idx)
-        if type(other) == 'int':
+        if self.idx == -1 and other.idx == -1:
+            return Share(self.value - other.value, -1)
+        if self.idx == -1:
+            return Share(self.value - other.value, other.idx) if other.idx == 0 else Share(other.value, other.idx)
+        if other.idx == -1:
             return Share(self.value - other.value, self.idx) if self.idx == 0 else Share(self.value, self.idx)
+        return Share(self.value - other.value, self.idx)
 
         raise NotImplementedError("You need to implement this method.")
 

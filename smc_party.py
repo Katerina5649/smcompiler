@@ -118,7 +118,7 @@ class SMCParty:
         for i, client in enumerate(self.participants):
             mess = self.comm.retrieve_public_message(client, 'final_result')
             result += int(mess)
-
+        print(f'DEBUG {self.client_id} result is {result}')
         return result 
         #self.comm.publish_message('secters_id', message)
         #print(self.client_id + ' ' + message)
@@ -171,7 +171,9 @@ class SMCParty:
             
         print(f'Type debug {type(left)} and {type(right)}')  
         if operator == '+':
-            return  left + right
+            return  right + left 
+        if operator == '-':
+            return  right - left 
              
         #    if 
         # if expr is an addition operation:
