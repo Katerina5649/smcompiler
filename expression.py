@@ -18,6 +18,12 @@ from typing import Optional
 ID_BYTES = 4
 
 
+def merge_two_dicts(x, y):
+    """Given two dictionaries, merge them into a new dict as a shallow copy."""
+    z = x.copy()
+    z.update(y)
+    return z
+
 def gen_id() -> bytes:
     id_bytes = bytearray(
         random.getrandbits(8) for _ in range(ID_BYTES)
@@ -43,40 +49,52 @@ class Expression:
         
         self.priority = 0
         self.command_list = []
+        self.constants = {}
+        self.secrets_idx = {}
         
     def create_command(self, symbol, new_expr):
         right_expr, left_expr = new_expr.tree.right, new_expr.tree.left
         expr_id, priority = new_expr.id, new_expr.priority
-        command = [priority, (right_expr.id, right_expr.priority), (left_expr.id, left_expr.priority), expr_id]
+        command = [priority, symbol, (right_expr.id.decode('utf-8'), right_expr.priority), (left_expr.id.decode('utf-8'), left_expr.priority), expr_id]
         new_expr.command_list += [command]
         new_expr.command_list += right_expr.command_list
         new_expr.command_list += left_expr.command_list
+        return new_expr
         
     def add_to_tree(self, other, symbol):
         new_tree = Node(symbol)
         new_tree.left = self
         new_tree.right = other
         
+        
         new_expr = Expression()
+        new_expr.constants = merge_two_dicts(self.constants, other.constants)
+        new_expr.secrets_idx = self.secrets_idx.union(other.secrets_idx)
         new_expr.tree = new_tree
         #new_expr.value = self.value + other.value
         new_expr.number_of_parties = self.number_of_parties + other.number_of_parties
         new_expr.priority = max(new_tree.left.priority, new_tree.right.priority) + 1
         
-        self.create_command(symbol, new_expr)
+        new_expr = self.create_command(symbol, new_expr)
         return new_expr
 
     def __add__(self, other):
+        if type(self) == type(Scalar(2)) and type(other) == type(Scalar(2)):
+            return Scalar(self.value + other.value)
         symbol = '+'
         return self.add_to_tree(other, symbol)
         #raise NotImplementedError("You need to implement this method.")
 
 
     def __sub__(self, other):
+        if type(self) == type(Scalar(2)) and type(other) == type(Scalar(2)):
+            return Scalar(self.value - other.value)
         symbol = '-'
         return self.add_to_tree(other, symbol)
     
     def __mul__(self, other):
+        if type(self) == type(Scalar(2)) and type(other) == type(Scalar(2)):
+            return Scalar(self.value * other.value)
         symbol = '*'
         return self.add_to_tree(other, symbol)
     
@@ -104,6 +122,7 @@ class Scalar(Expression):
         ):
         super().__init__(id)
         self.value = value
+        self.constants = {self.id.decode('utf-8') : value}
 
         
 
@@ -130,7 +149,7 @@ class Secret(Expression):
         super().__init__(id)
         self.number_of_parties = 1
         self.value = value
-
+        self.secrets_idx = {self.id.decode('utf-8')}
 
 
     def __repr__(self):

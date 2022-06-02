@@ -13,8 +13,6 @@ class ProtocolSpec:
         self.participant_ids = participant_ids
         self.expr = expr
         
-        commands = expr.command_list
-        
         
         
         
