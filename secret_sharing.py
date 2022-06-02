@@ -46,12 +46,8 @@ class Share:
         raise NotImplementedError("You need to implement this method.")
 
     def __mul__(self, other):
-        if type(other) == 'Share':
-            #return Share(self.value - other.value)
-            raise NotImplementedError("Finish multiplication !")
-        if type(other) == 'int':
-            return Share(self.value * other.value, self.idx) 
-
+        if self.idx == -1 or other.idx == -1:
+            return Share(self.value * other.value, max(self.idx, other.idx))
         raise NotImplementedError("You need to implement this method.")
 
 

@@ -77,7 +77,7 @@ class SMCParty:
         self.tasks.sort(key=lambda x: x[0])
         self.constants = self.protocol_spec.expr.constants
         
-        #self.secrets_id = [x.id.decode('utf-8') for x in self.value_dict.keys()]
+
         
         for x in self.value_dict.keys():
             value = self.value_dict[x]
@@ -174,6 +174,8 @@ class SMCParty:
             return  right + left 
         if operator == '-':
             return  right - left 
+        if operator == '*':
+            return  right * left 
              
         #    if 
         # if expr is an addition operation:
