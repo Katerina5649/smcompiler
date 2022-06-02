@@ -40,7 +40,7 @@ def run_processes(server_args, *client_args):
     server = Process(target=smc_server, args=(server_args,))
     clients = [Process(target=smc_client, args=(*args, queue)) for args in client_args]
 
-    server.start()
+    server.start()    
     time.sleep(3)
     for client in clients:
         client.start()
@@ -239,3 +239,15 @@ def test_suite8():
     )
     expected = (((3 + 8) + (14 * 9) - 2) * (5 + 7))
     suite(parties, expr, expected)
+    
+    
+    
+if __name__ == "__main__":
+    #test_suite1()
+    #test_suite2()
+    #test_suite3()
+    #test_suite4()
+    #test_suite5()
+    test_suite6()
+    test_suite7()
+    test_suite8()

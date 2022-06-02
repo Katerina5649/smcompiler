@@ -13,6 +13,7 @@ class Share:
     def __init__(self, value, idx,  *args, **kwargs):
         self.value = int(value)
         self.idx = idx
+        self.bn = int(value)
         # Adapt constructor arguments as you wish
         #raise NotImplementedError("You need to implement this method.")
 

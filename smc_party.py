@@ -69,6 +69,7 @@ class SMCParty:
 
 
 
+
     def run(self) -> int:
         """
         The method the client use to do the SMC.
@@ -103,15 +104,16 @@ class SMCParty:
         for command in self.tasks:
             #print(command)
             #print(command)
-            #print(self.additive_secrets_dict)
+            print(f'DEBUG dictionary for {self.client_id} is {self.additive_secrets_dict}')
             priority, operator, (left_id, left_priority), (right_id, right_priority), new_id = command
             new_id = new_id.decode('utf-8')
             left = self.additive_secrets_dict[left_id]
             right = self.additive_secrets_dict[right_id]
-            self.additive_secrets_dict[new_id] = self.process_command(priority, operator, left, right)
+            print(f'DEBUG {self.client_id} left {left} right {right}')
+            self.additive_secrets_dict[new_id] = self.process_command(priority, operator, left, right, new_id)
             
         
-        print(f'Final result for {self.client_id} is {self.additive_secrets_dict[new_id]}')
+        #print(f'Final result for {self.client_id} is {self.additive_secrets_dict[new_id]}')
         self.comm.publish_message('final_result', str(self.additive_secrets_dict[new_id].value))
         
         result = 0
@@ -120,6 +122,7 @@ class SMCParty:
             result += int(mess)
         print(f'DEBUG {self.client_id} result is {result}')
         return result 
+    
         #self.comm.publish_message('secters_id', message)
         #print(self.client_id + ' ' + message)
         #time.sleep(3)
@@ -162,20 +165,45 @@ class SMCParty:
             priority,
             operator,
             left,
-            right          
+            right,
+            new_id
         ) -> Share:
-        if type(left) == type(2):
+        if type(left) == type(2): 
             left = Share(left, -1)
         if type(right) == type(2):
             right = Share(right, -1)  
             
-        print(f'Type debug {type(left)} and {type(right)}')  
+        #print(f'Type debug {type(left)} and {type(right)}')  
         if operator == '+':
             return  right + left 
         if operator == '-':
             return  right - left 
         if operator == '*':
-            return  right * left 
+            if right.idx == -1 or left.idx == -1:
+                return  right * left 
+            a, b, c = self.comm.retrieve_beaver_triplet_shares(new_id)
+            print(f'DEBUG for {self.client_id} a : {a}, b : {b}, c: {c}')
+            print(f'DEBUG dectionary for {self.client_id} is {self.additive_secrets_dict}')
+            for i, client in enumerate(self.participants):
+                mess = f'{left.value - a} {right.value - b}'
+            
+                self.comm.publish_message(new_id, str(mess))
+                print(f'DEBUG public mess from {self.client_id} is {mess}')
+            time.sleep(2)
+            x_a, y_b = 0, 0
+            for i, client in enumerate(self.participants):
+                mess = self.comm.retrieve_public_message(client, new_id).decode("utf-8")
+                print(f'DEBUG message for {self.client_id} {mess}')
+                mess = mess.split(' ')
+                x_a += int(mess[0])
+                y_b += int(mess[1])
+            print(f'DEBUG for {self.client_id} x - a and y - b {self.client_id} is {x_a} and {y_b}')  
+            
+            #self.additive_secret_idx
+            add = -x_a*y_b if self.additive_secret_idx == 0 else 0
+            print(f'DEBUG  ADD {self.client_id} add {add}')
+            return Share(c + left.value*y_b + right.value*x_a + add, self.additive_secret_idx )
+                
              
         #    if 
         # if expr is an addition operation:

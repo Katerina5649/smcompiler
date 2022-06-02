@@ -147,4 +147,5 @@ class Communication:
         print(f"GET  {url}")
 
         res = requests.get(url)
+        #print(f'DEBUG res url {res}')
         return tuple(json.loads(res.text)) # type: ignore
