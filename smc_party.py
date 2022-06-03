@@ -58,7 +58,9 @@ class SMCParty:
         self.client_id = client_id
         self.protocol_spec = protocol_spec
         self.value_dict = value_dict
+        # order of clients will be similar for everyone
         self.participants = sorted(protocol_spec.participant_ids.copy())
+        # Calculate personal index
         self.additive_secret_idx = self.participants.index(self.client_id)
         # who will add constants
         self.first_member = min(self.participants)
@@ -86,16 +88,19 @@ class SMCParty:
             self.self_secrets += [secret_idx]
             additive_secret = share_secret(value, len(self.participants))
             for i, client in enumerate(self.participants):
+                # sending additive secrets to all clients
                 self.comm.send_private_message(client, secret_idx, str(additive_secret[i].value))
                 
+        # dict of all known constants and additive secrets. At start, known only public scalars
         
-        self.additive_secrets_dict = self.constants
+        self.additive_secrets_dict = self.constants # {expr_id : value}
         for secret_id in self.secrets_idx:
             
             mess = self.comm.retrieve_private_message(secret_id)
             value = mess.decode('utf-8')
+            # add all additive secrets from all clients to the dict
             self.additive_secrets_dict[secret_id] = Share(value, self.additive_secret_idx)
-                      
+        # Calculate expression command by command
         for command in self.tasks:
             priority, operator, (left_id, left_priority), (right_id, right_priority), new_id = command
             new_id = new_id.decode('utf-8')
@@ -145,7 +150,7 @@ class SMCParty:
                 mess = mess.split(' ')
                 x_a += int(mess[0])
                 y_b += int(mess[1])
-
+            # it is important to add it only for one participant.
             add = -x_a*y_b if self.additive_secret_idx == 0 else 0
             return Share(c + left.value*y_b + right.value*x_a + add, self.additive_secret_idx )
                 

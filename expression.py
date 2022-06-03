@@ -48,11 +48,13 @@ class Expression:
         self.number_of_parties = 0
         
         self.priority = 0
+        #this is list for all expression operation
         self.command_list = []
         self.constants = {}
         self.secrets_idx = None
         
     def create_command(self, symbol, new_expr):
+        "Creating command for SMCompiler and saving it in expression command list"
         right_expr, left_expr = new_expr.tree.right, new_expr.tree.left
         expr_id, priority = new_expr.id, new_expr.priority
         command = [priority, symbol, (right_expr.id.decode('utf-8'), right_expr.priority), (left_expr.id.decode('utf-8'), left_expr.priority), expr_id]
@@ -62,6 +64,7 @@ class Expression:
         return new_expr
         
     def add_to_tree(self, other, symbol):
+        "Create new expression with updates calculus tree."
         new_tree = Node(symbol)
         new_tree.left = self
         new_tree.right = other
@@ -78,8 +81,9 @@ class Expression:
         else:
             new_expr.secrets_idx = self.secrets_idx.union(other.secrets_idx) 
         new_expr.tree = new_tree
-        #new_expr.value = self.value + other.value
+        
         new_expr.number_of_parties = self.number_of_parties + other.number_of_parties
+        #proirity for new expression
         new_expr.priority = max(new_tree.left.priority, new_tree.right.priority) + 1
         
         new_expr = self.create_command(symbol, new_expr)
@@ -90,7 +94,7 @@ class Expression:
             return Scalar(self.value + other.value)
         symbol = '+'
         return self.add_to_tree(other, symbol)
-        #raise NotImplementedError("You need to implement this method.")
+        
 
 
     def __sub__(self, other):
@@ -116,7 +120,7 @@ class Expression:
         return hash(self.id)
 
 
-    # Feel free to add as many methods as you like.
+    
 
 
 class Scalar(Expression):
@@ -142,7 +146,7 @@ class Scalar(Expression):
         return
 
 
-    # Feel free to add as many methods as you like.
+    
 
 
 class Secret(Expression):
@@ -165,14 +169,13 @@ class Secret(Expression):
         )
 
 
-    # Feel free to add as many methods as you like.
+    
 
     
 class Node:
+    """Nodes for calculus tree."""
     def __init__(self, data):
         self.left = None
         self.right = None
         self.data = data
 
-
-# Feel free to add as many classes as you like.
