@@ -73,6 +73,7 @@ def suite(parties, expr, expected):
 
     for result in results:
         assert result == expected
+    print('\n ------------Test passed--------------- \n')
 
 
 def test_suite1():
@@ -241,13 +242,56 @@ def test_suite8():
     suite(parties, expr, expected)
     
     
+def test_suite9_my():
+    """
+    f(a, b, c, d, e, f) = (a + b + c)*12 + d + e + f
+    """
+    alice_secret_salary = Secret()
+    bob_secret_salary = Secret()
+    charlie_secret_salary = Secret()
+
+    alice_secret_reward = Secret()
+    bob_secret_reward = Secret()
+    charlie_secret_reward = Secret()
+    parties = {
+        "Alice": {alice_secret_salary: 3, alice_secret_reward: 1},
+        "Bob": {bob_secret_salary: 14, bob_secret_reward: 2},
+        "Charlie": {charlie_secret_salary: 2, charlie_secret_reward: 3}
+    }
+
+    expr = (
+        (alice_secret_salary + bob_secret_salary + charlie_secret_salary)*Scalar(12) +
+        alice_secret_reward + bob_secret_reward + charlie_secret_reward
+    )
+    expected = (3 + 14 + 2)*12 + 1 + 2 + 3
+    suite(parties, expr, expected)
+    
+def test_suite10_my():
+    """
+    f(a, b) = ((a*b) + a)*b
+    """
+    alice_secret_salary = Secret()
+    bob_secret_percent = Secret()
+
+    parties = {
+        "Alice": {alice_secret_salary: 3},
+        "Bank": {bob_secret_percent: 14},
+    }
+
+    expr = (
+        ((alice_secret_salary * bob_secret_percent) + alice_secret_salary)*bob_secret_percent
+    )
+    expected = ((3*14) + 3)*14
+    suite(parties, expr, expected)
     
 if __name__ == "__main__":
-    #test_suite1()
-    #test_suite2()
+    test_suite1()
+    test_suite2()
     #test_suite3()
     #test_suite4()
     #test_suite5()
-    test_suite6()
-    test_suite7()
-    test_suite8()
+    #test_suite6()
+    #test_suite7()
+    #test_suite8()
+    test_suite9_my()
+    test_suite10_my()

@@ -63,7 +63,6 @@ class SMCParty:
         # who will add constants
         self.first_member = min(self.participants)
         
-        #self.participants.remove(client_id)
         self.secrets_idx = protocol_spec.expr.secrets_idx
         self.self_secrets = []
 
@@ -75,6 +74,7 @@ class SMCParty:
         The method the client use to do the SMC.
         """
         self.tasks = self.protocol_spec.expr.command_list
+        #self commands by priority
         self.tasks.sort(key=lambda x: x[0])
         self.constants = self.protocol_spec.expr.constants
         
@@ -85,10 +85,8 @@ class SMCParty:
             secret_idx = x.id.decode('utf-8')
             self.self_secrets += [secret_idx]
             additive_secret = share_secret(value, len(self.participants))
-            #print(f' As {additive_secret} by {self.client_id} for {value}')
             for i, client in enumerate(self.participants):
                 self.comm.send_private_message(client, secret_idx, str(additive_secret[i].value))
-                #print(f'Sent {additive_secret[i].value} to {client}')
                 
         
         self.additive_secrets_dict = self.constants
@@ -96,70 +94,25 @@ class SMCParty:
             
             mess = self.comm.retrieve_private_message(secret_id)
             value = mess.decode('utf-8')
-            #print(f'Recieved {mess} by {self.client_id} for {secret_id}')
             self.additive_secrets_dict[secret_id] = Share(value, self.additive_secret_idx)
-            #print(self.additive_secrets_dict) 
-                
-        time.sleep(2)       
+                      
         for command in self.tasks:
-            #print(command)
-            #print(command)
-            print(f'DEBUG dictionary for {self.client_id} is {self.additive_secrets_dict}')
             priority, operator, (left_id, left_priority), (right_id, right_priority), new_id = command
             new_id = new_id.decode('utf-8')
             left = self.additive_secrets_dict[left_id]
             right = self.additive_secrets_dict[right_id]
-            print(f'DEBUG {self.client_id} left {left} right {right}')
             self.additive_secrets_dict[new_id] = self.process_command(priority, operator, left, right, new_id)
             
         
-        #print(f'Final result for {self.client_id} is {self.additive_secrets_dict[new_id]}')
         self.comm.publish_message('final_result', str(self.additive_secrets_dict[new_id].value))
         
         result = 0
         for i, client in enumerate(self.participants):
             mess = self.comm.retrieve_public_message(client, 'final_result')
             result += int(mess)
-        print(f'DEBUG {self.client_id} result is {result}')
         return result 
     
-        #self.comm.publish_message('secters_id', message)
-        #print(self.client_id + ' ' + message)
-        #time.sleep(3)
-       
-        #secrets_dict = {}
-        # from every client recieve their constant
-        #for client in self.participants:
-        #    keys = self.comm.retrieve_public_message(client, 'secters_id').decode("utf-8").split(' ')[:-1]
-        #    for key in keys:
-        #        secrets_dict[key] = client
-        
-        #print(secrets_dict)
-        # send additive secret to everyone
-        #for key in self.value_dict.keys():
-        #    additive_secret = share_secret(self.value_dict[key], len(self.participants))
-        #    for i, client_id in enumerate(self.participants):
-        #        print(client_id)
-        #        self.comm.send_private_message(client_id, key.id, str(additive_secret[i]) + ' ' + str(i))
-        
-        #time.sleep(3)
-        
-        #additive_secrets_dict = {}
-        #for secret in secrets_dict.keys():
-        #    additive_secrets_dict[secret] = self.comm.retrieve_private_message()
-        
-         
-        
-                
-       
-            
-            
 
-        #raise NotImplementedError("You need to implement this method.")
-        
-
-
-    # Suggestion: To process expressions, make use of the *visitor pattern* like so:
     def process_command(
             self,
             priority,
@@ -173,7 +126,6 @@ class SMCParty:
         if type(right) == type(2):
             right = Share(right, -1)  
             
-        #print(f'Type debug {type(left)} and {type(right)}')  
         if operator == '+':
             return  right + left 
         if operator == '-':
@@ -182,45 +134,19 @@ class SMCParty:
             if right.idx == -1 or left.idx == -1:
                 return  right * left 
             a, b, c = self.comm.retrieve_beaver_triplet_shares(new_id)
-            print(f'DEBUG for {self.client_id} a : {a}, b : {b}, c: {c}')
-            print(f'DEBUG dectionary for {self.client_id} is {self.additive_secrets_dict}')
             for i, client in enumerate(self.participants):
                 mess = f'{left.value - a} {right.value - b}'
             
                 self.comm.publish_message(new_id, str(mess))
-                print(f'DEBUG public mess from {self.client_id} is {mess}')
-            time.sleep(2)
+
             x_a, y_b = 0, 0
             for i, client in enumerate(self.participants):
                 mess = self.comm.retrieve_public_message(client, new_id).decode("utf-8")
-                print(f'DEBUG message for {self.client_id} {mess}')
                 mess = mess.split(' ')
                 x_a += int(mess[0])
                 y_b += int(mess[1])
-            print(f'DEBUG for {self.client_id} x - a and y - b {self.client_id} is {x_a} and {y_b}')  
-            
-            #self.additive_secret_idx
+
             add = -x_a*y_b if self.additive_secret_idx == 0 else 0
-            print(f'DEBUG  ADD {self.client_id} add {add}')
             return Share(c + left.value*y_b + right.value*x_a + add, self.additive_secret_idx )
                 
-             
-        #    if 
-        # if expr is an addition operation:
-        #     ...
 
-        # if expr is a multiplication operation:
-        #     ...
-
-        # if expr is a secret:
-        #     ...
-
-        # if expr is a scalar:
-        #     ...
-        #
-        # Call specialized methods for each expression type, and have these specialized
-        # methods in turn call `process_expression` on their sub-expressions to process
-        # further.
-        #pass
-
-    # Feel free to add as many methods as you want.
